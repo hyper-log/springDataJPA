@@ -6,6 +6,10 @@ import jpabook.springdatajpa.entity.Team;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -156,6 +160,38 @@ class MemberRepositoryTest {
         // 단건 조회면 데이터가 없을 때 null 반환한다.
 
         Optional<Member> optionalType = memberRepository.findOptionalByUsername("AAA");
+    }
+
+    @Test
+    public void page(){
+
+        //given
+        memberRepository.save(new Member("AAA", 10));
+        memberRepository.save(new Member("AAA", 10));
+        memberRepository.save(new Member("AAA", 10));
+        memberRepository.save(new Member("AAA", 10));
+        memberRepository.save(new Member("AAA", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+        //when
+        // Page Index가 0인 것을 꼭 숙지한 채로 활용하자!
+        Page<Member> page = memberRepository.findByAge(age, pageRequest);
+
+        // page를 dto로 편리하게 변환할 수 있다.
+        Page<MemberDto> toMaps = page.map(member -> new MemberDto(member.getId(), member.getUsername(), null));
+
+        //then
+        List<Member> content = page.getContent();
+        long totalElements = page.getTotalElements(); // 토탈 카운트 가능
+
+        assertThat(content.size()).isEqualTo(3);
+        assertThat(page.getTotalElements()).isEqualTo(5);
+        assertThat(page.getNumber()).isEqualTo(0);
+        assertThat(page.getTotalPages()).isEqualTo(2);
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
     }
 
 }
