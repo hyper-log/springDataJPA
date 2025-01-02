@@ -39,11 +39,11 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findOptionalByUsername(String username);
 
     // 웹 페이지 (토탈 카운트가 필요할 때) / 카운터 쿼리를 분리할 수도 있다.
-    // 카운트는 조인을 안 해도 됨, 그런데 원래 컨텐츠 쿼리가 조인을 할 때 카운터 쿼리도 조인을 하기 때문에 따로 분리해야 한다.
+    // 카운트는 조인을 안 해도 되는데, 컨텐츠 쿼리가 조인을 할 때 카운터 쿼리도 조인을 하기 때문에 따로 분리해야 한다.
     @Query(value = "select m from Member m left join m.team t",
             countQuery = "select count(m.username) from Member m")
     Page<Member> findByAge(int age, Pageable pageable);
-    // 모바일 페이지 UI (더보기에서 +1...... 할 때)
+    // 모바일 페이지 UI (더보기에서 +1 할 때, 리미트 간격을 1 추가해서 구해 준다. 토탈 카운트 쿼리는 따로 안 나간다.)
     // Slice<Member> findByAge(int age, Pageable pageable);
     // 리스트로도 동작한다.
     // List<Member> findByAge(int age, Pageable pageable);
