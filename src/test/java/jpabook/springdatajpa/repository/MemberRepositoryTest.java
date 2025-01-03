@@ -252,4 +252,35 @@ class MemberRepositoryTest {
         }
     }
 
+    @Test
+    public void queryHint() {
+        // given
+        Member member1 = new Member("member1", 10);
+        memberRepository.save(member1);
+        em.flush();
+        em.clear();
+
+        // when
+        Member findMember = memberRepository.findReadOnlyByUsername("member1");
+        // 스냅샷을 찍지 않아서, 변경 감지가 되지 않는다. 정말 조회 쿼리를 원한다면 해당 기능을 사용하는 것이 성능 최적화가 가능하다.
+        // 진짜 중요하고, 진짜 트래픽이 많은 곳에 넣는 거지, 그걸로 인해서 얻는 이점이 크지 않다. 처음부터 튜닝을 까는 것은 좋지 않다.
+        // 성능 테스트를 해 보고 결정.
+        findMember.setUsername("member2");
+
+        em.flush();
+    }
+
+    @Test
+    public void lock() {
+        // given
+        Member member1 = new Member("member1", 10);
+        memberRepository.save(member1);
+        em.flush();
+        em.clear();
+
+        // when
+        List<Member> result = memberRepository.findLockByUsername("member1");
+
+    }
+
 }
