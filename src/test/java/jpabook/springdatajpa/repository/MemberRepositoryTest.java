@@ -311,32 +311,23 @@ class MemberRepositoryTest {
 
     @Test
     public void queryByExample() {
-
-        // given
+        //given
         Team teamA = new Team("teamA");
         em.persist(teamA);
-
-        Member m1 = new Member("m1", 10, teamA);
-        Member m2 = new Member("m2", 10, teamA);
-        em.persist(m1);
-        em.persist(m2);
-
+        em.persist(new Member("m1", 0, teamA));
+        em.persist(new Member("m2", 0, teamA));
         em.flush();
-        em.clear();
-
         //when
+        //Probe 생성
         Member member = new Member("m1");
-        Team teamB = new Team("teamA");
-        member.setTeam(teamB);
-
+        Team team = new Team("teamA"); //내부조인으로 teamA 가능
+        member.setTeam(team);
+        //ExampleMatcher 생성, age 프로퍼티는 무시
         ExampleMatcher matcher = ExampleMatcher.matching()
                 .withIgnorePaths("age");
-
-        // innerJoin 가능, left join 불가능
-        Example<Member> example = Example.of(member);
-
+        Example<Member> example = Example.of(member, matcher);
         List<Member> result = memberRepository.findAll(example);
-
-        assertThat(result.get(0).getUsername()).isEqualTo("m1");
+        //then
+        assertThat(result.size()).isEqualTo(1);
     }
 }
