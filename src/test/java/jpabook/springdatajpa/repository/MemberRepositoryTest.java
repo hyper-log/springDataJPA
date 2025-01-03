@@ -335,4 +335,31 @@ class MemberRepositoryTest {
         //then
         assertThat(result.size()).isEqualTo(1);
     }
+
+    @Test
+    public void projections() {
+
+        // given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 10, teamA);
+        Member m2 = new Member("m2", 10, teamA);
+        em.persist(m1);
+        em.persist(m2);
+
+        em.flush();
+        em.clear();
+
+        // when
+        // 중첩 구조에서 left join 하게 되고, 두 번째로 불러온 team 최적화가 안 된다. 전부 가지고 오게 됨
+        List<NestedClosedProjections> result = memberRepository.findProjectionsByUsername("m1", NestedClosedProjections.class);
+
+        for (NestedClosedProjections nestedClosedProjection : result) {
+            String username = nestedClosedProjection.getUsername();
+            System.out.println("username = " + username);
+            String teamName = nestedClosedProjection.getTeam().getName();
+            System.out.println("teamName = " + teamName);
+        }
+    }
 }
