@@ -309,6 +309,7 @@ class MemberRepositoryTest {
         Assertions.assertThat(result.size()).isEqualTo(1);
     }
 
+    // 비추천
     @Test
     public void queryByExample() {
         //given
