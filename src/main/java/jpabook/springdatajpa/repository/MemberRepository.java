@@ -5,7 +5,9 @@ import jpabook.springdatajpa.entity.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -48,4 +50,24 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     // 리스트로도 동작한다.
     // List<Member> findByAge(int age, Pageable pageable);
 
+    // 벌크성 수정 쿼리. ex) 해가 지나서 직원들의 나이를 한꺼번에 업데이트 하는 경우.
+    // 수정은 모디파이 어노테이션을 넣어 준다. 어노테이션이 없으면 오류가 발생한다.
+    @Modifying(clearAutomatically = true)
+    @Query("update Member m set m.age = m.age +1 where m.age >= :age")
+    int bulkAgePlus(@Param("age") int age);
+
+    @Query("select m from Member m left join fetch m.team")
+    List<Member> findMemberFetchJoin();
+
+    @Override
+    @EntityGraph(attributePaths = {"team"}) //JPQL로 하기 싫고, team 조회를 같이 조회하고 싶을 때 fetch join 같은 효과
+    List<Member> findAll();
+
+    @EntityGraph(attributePaths = {"team"})
+    @Query("select m from Member m") // 이런 식으로도 사용이 가능하다.
+    List<Member> findMemberEntityGraph();
+
+    // @EntityGraph(attributePaths = {"team"}) // 이런 식으로도 가능하다.
+    @EntityGraph("Member.all") //Member Entity @NamedEntityGraph 참고
+    List<Member> findEntityGraphByUsername(@Param("username") String username);
 }

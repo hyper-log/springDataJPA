@@ -1,5 +1,7 @@
 package jpabook.springdatajpa.repository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jpabook.springdatajpa.dto.MemberDto;
 import jpabook.springdatajpa.entity.Member;
 import jpabook.springdatajpa.entity.Team;
@@ -26,6 +28,7 @@ class MemberRepositoryTest {
 
     @Autowired MemberRepository memberRepository;
     @Autowired TeamRepository teamRepository;
+    @PersistenceContext EntityManager em;
 
     @Test
     public void testMember() {
@@ -192,6 +195,61 @@ class MemberRepositoryTest {
         assertThat(page.getTotalPages()).isEqualTo(2);
         assertThat(page.isFirst()).isTrue();
         assertThat(page.hasNext()).isTrue();
+    }
+
+    @Test
+    public void bulkUpdate() {
+        // given
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 19));
+        memberRepository.save(new Member("member3", 20));
+        memberRepository.save(new Member("member4", 21));
+        memberRepository.save(new Member("member5", 40));
+
+        // when
+        int resultCount = memberRepository.bulkAgePlus(20);
+
+        // DB에서는 이미 반영됐으나, 바로 업데이트 쿼리를 날려서 영속성 컨텍스트에 반영되지 않는다.
+        // 그래서 영속성 컨텍스트를 한 번 날려야 된다.
+        // em.clear();
+        // 클리어를 하면 DB에서 완전 깔끔한 상태로 다시금 조회한다.
+        // 벌크성 쿼리에서는 해당을 조심해야 한다.
+        // 그래서 모디파이 어노테이션에 옵션을 추가해 주면 해당 클리어를 명시적으로 해 주지 않아도 된다. (MemberRepository 확인)
+        // 마이바티스나 JDBC를 이용해서 직접 쿼리를 날리는 경우에도 해당 현상을 조심해야 한다.
+        List<Member> result = memberRepository.findByUsername("member5");
+        Member member5 = result.get(0);
+        System.out.println("member5 = " + member5);
+
+        // then
+        assertThat(resultCount).isEqualTo(3);
+    }
+
+    @Test
+    public void findMemberLazy() {
+        //given
+        //member1 -> teamA
+        //member2 -> teamB
+
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        Member member1 = new Member("member1", 10, teamA);
+        Member member2 = new Member("member2", 20, teamB);
+        memberRepository.save(member1);
+        memberRepository.save(member2);
+
+        em.flush();
+        em.clear();
+
+        //when
+        List<Member> members = memberRepository.findEntityGraphByUsername("member1");
+
+        for (Member member : members) {
+            System.out.println("member = " + member.getUsername());
+            System.out.println("member.teamClass = " + member.getTeam().getClass());
+            System.out.println("member.team = " + member.getTeam().getName());
+        }
     }
 
 }
