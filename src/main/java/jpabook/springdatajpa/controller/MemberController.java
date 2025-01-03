@@ -20,7 +20,7 @@ public class MemberController {
         return member.getUsername();
     }
 
-    // 도메인 클래스 컨버터. 권장하지 않음
+    // 도메인 클래스 컨버터. 권장하지 않음. 사용하려면 딱 조회용으로만.
     @GetMapping("/members2/{id}")
     public String findMember(@PathVariable("id") Member member) {
         return member.getUsername();
