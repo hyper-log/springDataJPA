@@ -229,7 +229,6 @@ class MemberRepositoryTest {
         //given
         //member1 -> teamA
         //member2 -> teamB
-
         Team teamA = new Team("teamA");
         Team teamB = new Team("teamB");
         teamRepository.save(teamA);
@@ -272,6 +271,7 @@ class MemberRepositoryTest {
 
     @Test
     public void lock() {
+
         // given
         Member member1 = new Member("member1", 10);
         memberRepository.save(member1);
@@ -280,7 +280,12 @@ class MemberRepositoryTest {
 
         // when
         List<Member> result = memberRepository.findLockByUsername("member1");
-
     }
+
+    @Test
+    public void callCustom() {
+        List<Member> result = memberRepository.findMemberCustom();
+    }
+
 
 }
